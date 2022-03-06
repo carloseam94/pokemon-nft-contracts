@@ -33,15 +33,17 @@ contract PokemonNFT is ERC721URIStorage {
     ];
 
      MerkleTree public merkleTree;
+     uint256 public limit_to_mint;
 
     // Notify the frontend whenever a new NFT is succesfully minted
     event NewNFTMinted(address sender, uint256 tokenId);
 
     // Constructor following ERC721 protocol (name and symbol)
-    constructor() ERC721("PokemonNFT", "POKE") {
+    constructor(uint256 _limit_to_mint) ERC721("PokemonNFT", "POKE") {
         console.log("Pokemon NFT contract");
+        limit_to_mint = _limit_to_mint;
         // initialize the merkle tree that we are going to send minted data
-        merkleTree = new MerkleTree(4);
+        merkleTree = new MerkleTree(limit_to_mint);
     }
 
     // Generate a random number (well, kinda, pseudo-pseudo-random but still :) 
@@ -55,8 +57,24 @@ contract PokemonNFT is ERC721URIStorage {
         return pokemons[rand % pokemons.length];
     }
 
+    // to provide the front end with the leaves of the merkle tree, we'll use this to generate and verify a snk proof
+    function getMerkleTreeLeaves() public view returns (bytes32[] memory) {
+        return merkleTree.getLeaves();
+    }
+
+    // to allow to mint a maximun number of nfts int the front
+    function getCurrentIndex() public view returns (uint256) {
+        return _tokenIds.current();
+    }
+
+    function getLimit() public view returns (uint256) {
+        return limit_to_mint;
+    }
+
     // Function to build and mint the NFT
     function makeAPokemonNFT(address personAddress) public {
+        require(_tokenIds.current() < limit_to_mint, "Surpassed the limit, cant mint anymore");
+        
         uint256 newItemId = _tokenIds.current();
 
         string memory svg3 = string(abi.encodePacked(svg1, pickRandomPokemon(newItemId), svg2));

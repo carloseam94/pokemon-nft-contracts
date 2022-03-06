@@ -28,6 +28,10 @@ contract MerkleTree {
         return leaves;
     }
 
+    function getIndex() public view returns (uint256) {
+        return index;
+    }
+
     function insert(string memory x) public {
         require(index < leaves.length);
 
@@ -47,7 +51,6 @@ contract MerkleTree {
             parent = i / 2 + n;
             sibling = i % 2 == 0 ? i + 1 : i - 1;
         }
-
         index++;
     }
 }
